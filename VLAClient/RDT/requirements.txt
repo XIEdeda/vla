@@ -1,0 +1,16 @@
+# ===== Core Python deps (pip) =====
+absl-py==2.3.1
+attrs==25.4.0
+click==8.3.1
+dm-tree==0.1.9
+msgpack==1.1.2
+numpy==1.26.4
+opencv-python==4.9.0.80
+pillow==12.1.0
+svgwrite==1.4.3
+websockets==15.0.1
+wrapt==2.0.1
+Tree==0.2.4
+typing_extensions==4.15.0
+# ===== Local editable package =====
+-e /home/peanut/orin_vla_env/xman_vla/openpi-client

@@ -1,0 +1,8 @@
+pi05/img_head.jpg
+pi05/*.json 
+*.jsonl
+pi05/*.jsonl
+pi05/one_action_time*.txt
+*.pyc
+bag_*
+*.log

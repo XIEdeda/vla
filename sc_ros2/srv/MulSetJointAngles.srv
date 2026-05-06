@@ -1,0 +1,4 @@
+# 服务定义
+JointSequence[] sequences
+---
+bool success
