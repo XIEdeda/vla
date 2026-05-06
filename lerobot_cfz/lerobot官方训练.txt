@@ -1,0 +1,39 @@
+torchrun --standalone --nproc_per_node=8 src/lerobot/scripts/lerobot_train.py \
+    --dataset.repo_id=.../202512.use.the.right.gripper.to.pick.up.a.Sanhuang.Plan.and.hold.it.HJN707.dof.14.new \
+    --policy.type=pi0 \
+    --output_dir=.../checkpoints/outputs/pi0_bs137 \
+    --policy.pretrained_path=.../hf_models/pi0_base \
+    --policy.compile_model=false \
+    --policy.gradient_checkpointing=true \
+    --policy.dtype=float32 \
+    --steps=10000 \
+    --policy.device=cuda \
+    --batch_size=137 \
+    --policy.push_to_hub=false
+
+torchrun --standalone --nproc_per_node=8 src/lerobot/scripts/lerobot_train.py\
+    --dataset.repo_id=.../202512.use.the.right.gripper.to.pick.up.a.Sanhuang.Plan.and.hold.it.HJN707.dof.14.new \
+    --policy.type=pi05 \
+    --output_dir=.../checkpoints/outputs/pi05_bs114 \
+    --policy.pretrained_path=.../hf_models/pi05_base \
+    --policy.compile_model=false \
+    --policy.gradient_checkpointing=true \
+    --wandb.enable=false \
+    --policy.dtype=float32 \
+    --steps=10000 \
+    --policy.device=cuda \
+    --batch_size=114 \
+    --policy.push_to_hub=false
+
+python src/lerobot/scripts/lerobot_train.py \
+    --dataset.repo_id=your_dataset \
+    --policy.type=wall_x \
+    --output_dir=./outputs/wallx_training \
+    --job_name=wallx_training \
+    --policy.repo_id=your_repo_id \
+    --policy.pretrained_name_or_path=x-square-robot/wall-oss-flow \
+    --policy.prediction_mode=diffusion \
+    --policy.attn_implementation=eager \
+    --steps=3000 \
+    --policy.device=cuda \
+    --batch_size=32

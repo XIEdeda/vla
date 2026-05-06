@@ -1,0 +1,33 @@
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+export HF_ENDPOINT=https://hf-mirror.com
+export HF_LEROBOT_HOME="/mnt/nvme0n1/nvme1n1/cache_dataset"
+export HF_HOME="/mnt/nvme0n1/nvme1n1/cache_dataset"
+export WANDB_API_KEY="43c090c35e1a2e20da2a888a9bfcf270df14232c"
+# export ACCELERATE_MIXED_PRECISION=bf16
+
+# torchrun --standalone --nproc_per_node=8 src/lerobot/scripts/lerobot_train.py \
+#     --dataset.repo_id=.../202512.use.the.right.gripper.to.pick.up.a.Sanhuang.Plan.and.hold.it.HJN707.dof.14.new \
+#     --policy.type=pi0 \
+#     --output_dir=.../checkpoints/outputs/pi0_bs137 \
+#     --policy.pretrained_path=.../hf_models/pi0_base \
+#     --policy.compile_model=false \
+#     --policy.gradient_checkpointing=true \
+#     --policy.dtype=float32 \
+#     --steps=10000 \
+#     --policy.device=cuda \
+#     --batch_size=137 \
+#     --policy.push_to_hub=false
+
+torchrun --standalone --nproc_per_node=4 src/lerobot/scripts/lerobot_train.py\
+    --dataset.repo_id=/mnt/datas/vla_datasets/coffee_src_data/coffee_motion_downsample_0401 \
+    --policy.type=pi05 \
+    --output_dir=/mnt/datas/finetune_model/pi05lerobot_coffee_motion_downsample_0401 \
+    --policy.pretrained_path=lerobot/pi05_base \
+    --policy.compile_model=false \
+    --policy.gradient_checkpointing=false \
+    --wandb.enable=true \
+    --policy.dtype=float32 \
+    --steps=10000 \
+    --policy.device=cuda \
+    --batch_size=32 \
+    --policy.push_to_hub=false
