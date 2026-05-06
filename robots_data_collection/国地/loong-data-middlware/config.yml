@@ -1,0 +1,31 @@
+# @Author: Kai Xu
+# @Date:   2024-10-15 11:03:19
+# @Last Modified by:   Kai Xu
+# @Last Modified time: 2025-02-08 17:41:46
+Global:
+  LogLevel: Info  #日志级别
+  Mode: UniversalTrainingRobot_BuildIn 
+  UseMockData: false  #是否使用模拟数据
+  LogFileFolder: ./tmp/logs #日志文件夹
+  WorkspaceFolder: ./tmp/workspace #数据落盘文件夹
+  S3UploadChunkSize: 10 #S3上传分块大小，单位MB 
+  WebSocketClientUrl: ws://127.0.0.1:10780 #WebSocket客户端URL
+  DataPostProcessWaitTime: 40  #数据预处理等待时间，单位秒
+  APIVersion: "2.0.0" #API版本
+Equipment:
+  SN: "123" #设备序列号，修改为擎朗的SN，测试用可以简单设置
+  Manufacturer: "擎朗" #设备制造商
+  Model: "R1" #设备构型
+  Version: "V1" #设备版本
+  DataType: "Common-V1" #设备数据类型
+  DataVersion: "1.0.0" #设备数据版本
+Validation:
+  Enable: true
+  MinJointFPS: 20 #最小关节帧率
+  MinCameraFPS: 30 #最小相机帧率
+I18N:
+  CN: 
+    neck: "颈部关节"
+    head: "头部相机"
+    hand_left: "左手相机"
+    hand_right: "右手相机"

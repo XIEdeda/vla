@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <!-- 1. 基本信息（保留你的原有配置） -->
+  <name>topic_pub</name>
+  <version>0.0.1</version>
+  <description>topic_pub</description>
+  <maintainer email="mlt@keenon.com">mlt</maintainer>
+  <license>Apache-2.0</license>
+
+  <!-- 2. 构建工具依赖（保留原有，补充消息编译相关） -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+  <!-- 3. 编译时依赖（新增：消息接口生成工具） -->
+  <build_depend>rosidl_default_generators</build_depend>
+
+  <!-- 4. 核心依赖（保留你的原有配置，覆盖编译+运行阶段） -->
+  <depend>rclcpp</depend>
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>opencv</depend>
+  <!-- <depend>orbbec_camera</depend> -->
+  <!-- <depend>realsense2_camera</depend> -->
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+
+  <!-- 5. 运行时依赖（新增：消息接口运行支持） -->
+  <exec_depend>rosidl_default_runtime</exec_depend>
+
+  <!-- 6. Python第三方库依赖（保留你的原有注释，按需启用） -->
+  <!-- <exec_depend>python3-numpy</exec_depend> -->
+  <!-- <exec_depend>python3-h5py</exec_depend> -->
+  <!-- <exec_depend>python3-opencv</exec_depend> -->
+  <!-- <exec_depend>python3-websockets</exec_depend> -->
+
+  <!-- 7. 测试依赖（保留你的原有配置） -->
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <!-- 8. 关键配置：声明为消息接口包（解决编译错误的核心） -->
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+  <!-- 9. 导出配置（保留你的原有配置） -->
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

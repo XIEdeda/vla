@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>guodi</name>
+  <version>0.0.1</version>
+  <description>双臂机器人数据采集系统（C++）</description>
+  <maintainer email="mlt@keenon.com">mlt</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- 3. C++ 核心依赖 -->
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>sc_ros2</depend>
+  <depend>topic_pub</depend>
+
+  <!-- 4. C++ 第三方库依赖 -->
+  <depend>nlohmann_json_cmake_module</depend>
+  <depend>boost</depend>
+  <depend>opencv</depend>
+  <depend>hdf5</depend>
+
+  <!-- 6. 相机驱动和Launch依赖 -->
+  <!-- <depend>orbbec_camera</depend> -->
+  <depend>realsense2_camera</depend>
+
+  <!-- 7. 测试依赖 -->
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <!-- 8. 导出配置 -->
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

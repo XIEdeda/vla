@@ -1,0 +1,532 @@
+查看realsense相机序列号
+rs-enumerate-devices
+检查用的是usb2.0还是3.0
+rs-enumerate-devices | grep "Usb Type Descriptor"
+
+更新相机固件https://dev.realsenseai.com/docs/firmware-releases-d400
+rs-fw-update -f ~/Downloads/Signed_Image_UVC_5_17_0_10.bin
+更新 udev 规则
+sudo apt remove librealsense2-udev-rules
+sudo apt install librealsense2-udev-rules=2.56.5-0~realsense.6682
+或
+sudo apt install --reinstall librealsense2-udev-rules
+sudo udevadm control --reload-rules && sudo udevadm trigger
+
+
+robot 005 wlan ip 192.168.9.164
+
+使用 WebSocket 客户端工具发送指令，例如：
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g wscat
+
+命令行工具：wscat（需先安装 npm install -g wscat）
+在线工具：Websocket King
+代码调试：Python 的websockets库或 JavaScript 的WebSocket对象
+
+
+sudo apt install cifs-utils
+sudo apt install smbclient
+
+taskset -c 0,1 ros2 run sc_ros2 remote_control_data
+export SAVE_DEPTH=false
+bash run_cpp.sh
+
+连接地址：ws://localhost:10780（代码中默认监听地址）
+wscat -c ws://localhost:10780
+wscat -c ws://172.16.9.49:10780
+wscat -c ws://172.16.9.71:10780
+
+1. 探活与获取设备信息（GET_INFO）
+作用：验证连接并获取机器人信息（含相机配置）
+{"cmd": "GET_INFO", "mid": 1}
+
+{"cmd": "GET_AGENT_ID", "mid": 17, "data": {"agent_id": "1"}}
+
+
+2. 启动数据采集（START_TELEMETRY）
+作用：开始采集双臂关节数据和相机数据并落盘
+{"cmd": "START_TELEMETRY", "mid": 2, "data": {"data_folder": "agent_id/task_id/2"}}
+相对路径
+{"cmd": "START_TELEMETRY", "mid": 2, "data": {}}
+不输入路径
+{"cmd": "START_TELEMETRY", "mid": 2, "data": {"data_folder": "/mnt/guodi_dataset/1"}}绝对路径
+{"cmd": "START_TELEMETRY", "mid": 2, "data": {"data_folder":"1"}}
+表示落在/mnt/guodi_dataset这个默认地址下然后文件夹命名为1
+
+3. 停止数据采集（STOP_TELEMETRY）
+作用：结束采集并保存数据（生成 H5 文件、视频等）
+{"cmd": "STOP_TELEMETRY", "mid": 3}
+
+{"cmd": "STOP_AND_SUB", "mid": 19}
+
+
+4. 数据后处理（DATA_POSTPROCESS）
+作用：将临时格式数据转换为统一格式，已是落盘格式，直接回应正确
+{"cmd": "DATA_POSTPROCESS", "mid": 4, "data": {}}
+{"cmd": "DATA_POSTPROCESS", "mid": 4, "data": {"data_folder": "/mnt/guodi_dataset"}}
+
+5. 启动相机预览（START_PREVIEW）
+作用：开启指定相机的实时预览（推送帧数据）
+{"cmd": "START_PREVIEW", "mid": 5, "data": {"camera_names": ["head", "hand_right","hand_left"]}}
+{"cmd": "START_PREVIEW", "mid": 6, "data": {"camera_names": ["head"]}}
+{"cmd": "START_PREVIEW", "mid": 6, "data": {"camera_names": ["hand_right"]}}
+
+6. 停止相机预览（STOP_PREVIEW）
+作用：关闭预览并释放相机资源
+{"cmd": "STOP_PREVIEW", "mid":7 }
+
+7. 恢复初始状态（RECOVER）
+作用：关闭所有采集 / 预览，释放所有资源（紧急重置）
+{"cmd": "RECOVER", "mid": 8}
+
+"START_PREVIEW"->"STOP_PREVIEW"->"START_TELEMETRY"->"STOP_TELEMETRY"->"DATA_POSTPROCESS"->"RECOVER"
+然后之后就是循环"START_TELEMETRY"->"STOP_TELEMETRY"->"DATA_POSTPROCESS"->"RECOVER"
+
+丢弃重采
+需要在采集结束数据保存之后
+指令示例：
+{"cmd": "DISCARD_DATA", "mid": 10}
+
+{"cmd": "DISCARD_BOTH_DATA", "mid": 18}
+
+成功返回示例
+{
+  "cmd": "ACK",
+  "mid": 10,
+  "type": "GetInfoPayload",
+  "data": {
+    "msg": "丢弃成功",
+    "deleted_path": "/mnt/guodi_dataset/20260202_170851/data"
+  }
+}
+失败返回示例
+{
+  "cmd": "ERROR",
+  "mid": 10,
+  "type": "ErrorPayload",
+  "data": {
+    "code": 500,
+    "message": "丢弃失败"
+  }
+}
+
+{"cmd": "WRITE_SUB_TASK_JSON", "mid": 20}
+
+数据校验需要在采集结束数据保存之后
+{"cmd": "VERIFY_DATA","mid": 11}
+校验保存的文件数据信息，文件大小，相机帧数和机械臂帧数
+指令示例：
+{
+  "cmd": "VERIFY_DATA",
+  "mid": 11
+}
+成功返回示例：
+{
+  "cmd": "ACK",
+  "mid": 11,
+  "type": "GetInfoPayload",
+  "data": {
+    "data_folder": "/mnt/guodi_dataset/20260204_143500/data",
+    "folder_size_mb": 25.78,
+    "camera_frames": {
+      "head": {"color": 150, "depth": 150},
+      "hand_left": {"color": 150, "depth": 150},
+      "hand_right": {"color": 150, "depth": 150}
+    },
+    "camera_frame_total_count": 900,
+    "arm_frames": {
+      "left_arm": 500,
+      "right_arm": 500
+    },
+    "arm_frame_total_count": 1000
+  }
+}
+失败返回示例：
+{
+  "cmd": "ERROR",
+  "mid": 11,
+  "type": "ErrorPayload",
+  "data": {
+    "code": 500,
+    "message": "数据未保存完成，请先停止采集"
+  }
+}
+
+
+LIST_FILES (列出文件列表)：
+指令示例：{"cmd": "LIST_FILES", "mid": 13, "data": {"path": "/mnt/guodi_dataset"}}
+功能：返回指定目录下的所有文件和文件夹，包含名称、类型（file/directory）、大小（字节）和最后修改时间。
+默认路径：如果不传 path，默认列出 /mnt/guodi_dataset。
+请求指令示例：
+{
+  "cmd": "LIST_FILES",
+  "mid": 13,
+  "data": {
+    "path": "/mnt/guodi_dataset"
+  }
+}
+成功返回 (ACK)：
+{
+  "cmd": "ACK",
+  "mid": 13,
+  "type": "GetInfoPayload",
+  "data": {
+    "path": "/mnt/guodi_dataset",
+    "items": [
+      {
+        "name": "20260202_170851",
+        "type": "directory",
+        "size_bytes": 4096,
+        "mtime": 1738510000.0
+      },
+      {
+        "name": "readme.txt",
+        "type": "file",
+        "size_bytes": 1024,
+        "mtime": 1738510500.0
+      }
+    ]
+  }
+}
+
+返回失败示例：
+{
+  "cmd": "ERROR",
+  "mid": 13,
+  "type": "ErrorPayload",
+  "data": {
+    "code": 500,
+    "message": ""文件列表获取失败"" 
+  }
+}
+
+DELETE_ITEM (删除文件夹或单个文件)：
+指令示例：{"cmd": "DELETE_ITEM", "mid": 14, "data": {"path": "/mnt/guodi_dataset/20260203_092023/data/meta_info.json"}}
+功能：根据路径自动判断是文件还是文件夹，并执行删除。文件夹会连同内部所有内容一并删除。
+请求指令示例：
+{
+  "cmd": "DELETE_ITEM",
+  "mid": 14,
+  "data": {
+    "path": "/mnt/guodi_dataset/test_file.txt"
+  }
+}
+成功返回 (ACK)：
+{
+  "cmd": "ACK",
+  "mid": 14,
+  "type": "GetInfoPayload",
+  "data": {
+    "msg": "删除成功",
+    "path": "/mnt/guodi_dataset/test_file.txt"
+  }
+}
+
+返回失败示例：
+{
+  "cmd": "ERROR",
+  "mid": 15,
+  "type": "ErrorPayload",
+  "data": {
+    "code": 500,
+    "message": ""删除需要指定路径"" 
+  }
+}
+
+CLEAR_DIRECTORY (清空目录)：
+指令示例：{"cmd": "CLEAR_DIRECTORY", "mid": 15, "data": {"path": "/mnt/guodi_dataset/20260203_092023/data/parameters"}}
+功能：删除该目录下所有的子文件和子文件夹，但保留该目录本身。
+统计返回：成功后会返回清理掉的文件数和文件夹数。
+请求指令示例：
+{
+  "cmd": "CLEAR_DIRECTORY",
+  "mid": 15,
+  "data": {
+    "path": "/mnt/guodi_dataset/some_folder"
+  }
+}
+成功返回示例：
+{
+  "cmd": "ACK",
+  "mid": 15,
+  "type": "GetInfoPayload",
+  "data": {
+    "msg": "Directory contents cleared successfully",
+    "path": "/mnt/guodi_dataset/some_folder",
+    "cleared_files": 5,
+    "cleared_dirs": 2
+  }
+}
+
+返回失败示例：
+{
+  "cmd": "ERROR",
+  "mid": 15,
+  "type": "ErrorPayload",
+  "data": {
+    "code": 500,
+    "message": "Failed to list files" 
+  }
+}
+
+
+### 发送下载请求
+```json
+{
+  "cmd": "DOWNLOAD_FILE",
+  "mid": 16,
+  "data": {
+    "path": "/机器人上的完整文件路径/example.tar"
+  }
+}
+```
+
+### 成功响应
+```json
+{
+  "cmd": "ACK",
+  "mid": 16,
+  "type": "DownloadFilePayload",
+  "data": {
+    "file_name": "example.tar",
+    "download_url": "http://172.16.9.71:18080/files/example.tar",
+    "file_size": 104857600,
+    "size_mb": 100.0
+  }
+}
+```
+
+### 错误响应
+```json
+{
+  "cmd": "ERROR",
+  "mid": 16,
+  "data": {
+    "message": "具体的错误信息"
+  }
+}
+```
+
+通过samba拉取到pc共享目录上
+{"cmd": "UPLOAD_TO_SAMBA","mid": 123,"data": {"agent_id": "agent_id","task_id": "task_id"}}
+请求指令
+{
+  "cmd": "UPLOAD_TO_SAMBA",
+  "mid": 123,
+  "data": {
+    "agent_id": "agent_id",
+    "task_id": "task_id"
+  }
+}
+成功响应示例
+{
+  "cmd": "ACK",
+  "mid": 123,
+  "data": {
+    "msg": "数据已上传到Samba共享目录",
+    "source_path": "/mnt/guodi_dataset/xxx/yyy",
+    "dest_path": "smb://172.16.24.239/data/yyy",
+    "agent_id": "xxx",
+    "task_id": "yyy",
+    "folder_name": "yyy"
+  }
+}
+
+新开发
+获取Agent_id
+{"cmd": "GET_AGENT_ID", "mid": 17, "data": {"agent_id": "111"}}
+在samba共享目录下的/data/agent_id/新建一个robot_status.json，每隔10s更新里面的内容
+{
+  "timestamp":2025-11-20T10:30:00.000Z", //状态更新写入时间
+  //整体运行状态：running-运行中，error-异常
+  "status":"running",
+  //错误代码，0表示无错误，非0表示具体错误类型
+  "errorCode":0,
+  //错误描述信息，errorCode=0时为空，否则描述具体错误
+  "errorMsg":""
+}
+先暂时无错误，除了时间需要更新外，其他信息都先暂时这样
+
+启动数据采集（START_TELEMETRY）需要告诉我agent_id和task_id和子任务序号，类似于
+{"cmd": "START_TELEMETRY", "mid": 2, "data": {"data_folder": "agent_id/task_id/1"}}
+
+丢弃重采新增指令（同时删除两边刚采集的上条数据）
+{"cmd": "DISCARD_DATA", "mid": 10}沿用这个逻辑
+{"cmd": "DISCARD_BOTH_DATA", "mid": 18}新增
+
+stop_telemetry保留
+新增stop_and_sub停止数据采集先落盘到机器人上这一部分功能逻辑和stop_telemetry完全一致多了个功能将数据拉到PC
+{"cmd": "STOP_AND_SUB", "mid": 19}
+
+
+我这边需要新开发一个服务，前端发送数据校验{"cmd": "VERIFY_DATA","mid": 11}后，收到返回指令后，再发一个
+{"cmd": "WRITE_SUB_TASK_JSON", "mid": 20}我来写入pc的sub_task.json，目录是172.16.9.153/data/agent_id/task_id/task_info/sub_task.json
+写入内容(追加形式如果task_id一致采用覆盖那条数据)
+[
+  {
+    "subNumber":"task_id",这个task_id我是知道的，因为开始采集时前端发给我了
+    "duration":10,//采集时长，单位秒，从meta_info.json里读取
+    "startTime":"2025-11-21T10:35:00Z",//采集开始时间，从meta_info.json里读取
+    "endTime":"2025-11-21T10:35:00Z",//采集结束时间，根据"duration"和"endTime"计算出
+    "file_Size":"2G"//采集文件大小，也是已知的"VERIFY_DATA"里有这个信息的比如200MB这样取小数点后1位即可
+  },
+  {
+
+  }
+]
+
+
+## 📁 支持的文件类型
+✅ 普通文本文件 (.txt, .log, .csv等)
+✅ 图片文件 (.jpg, .png, .bmp等)  
+✅ 压缩包 (.zip, .tar, .gz等)
+✅ 二进制文件 (.bin, .dat等)
+✅ 采集数据文件 (.h5, .npz等)
+✅ 任意其他文件类型
+
+⚠️ 注意：只能下载文件，不能下载文件夹（目录）
+
+# 开放 445 端口
+sudo iptables -I INPUT -p tcp --dport 445 -j ACCEPT
+
+smb://172.16.24.239/data/
+用户名：zhangqilin
+密码：qlzn1234
+
+搭建 Samba 服务
+确认用户存在
+whoami
+id zhangqilin
+准备 /data 目录
+sudo mkdir -p /data
+设置 Linux 文件权限
+sudo chown -R zhangqilin:zhangqilin /data
+sudo chown -R xiededa:xiededa /data
+
+sudo chown -R zhangqilin:zhangqilin /data
+
+sudo chmod -R 2775 /data
+验证
+ls -ld /data
+
+orin上安装
+sudo apt update
+sudo apt install -y cifs-utils samba smbclient acl
+
+pc上1、安装Samba
+sudo apt update
+sudo apt install -y samba smbclient acl
+2、设置samba密码
+sudo smbpasswd -a zhangqilin  # 替换为你的用户名，然后输入密码
+xiededa
+4、修改配置文件
+sudo vim /etc/samba/smb.conf 在最后输入
+[data]
+   path = /data
+   browseable = yes
+   writable = yes
+
+   valid users = zhangqilin
+   force user = zhangqilin
+   force group = zhangqilin
+
+   create mask = 0664
+   directory mask = 2775
+
+5、重启服务
+sudo systemctl restart smbd
+sudo systemctl enable smbd
+
+确认状态
+systemctl status smbd
+
+Linux 测试
+smbclient //localhost/data -U zhangqilin
+
+三、测试流程示例
+
+    连接 WebSocket：
+    用wscat连接：wscat -c ws://localhost:10780
+    获取设备信息：发送GET_INFO指令，确认返回的相机列表和机器人信息。
+    启动预览：发送START_PREVIEW，指定有效相机名称，观察是否收到SEND_CAMERA_FRAME推送的帧数据（Base64 编码的图像）。
+    启动采集：发送START_TELEMETRY，传入有效路径，确认返回成功。
+    观察采集进度：会收到SEND_SAMPLER_PROCESS推送的实时进度（每秒 1 次）。
+    停止采集：发送STOP_TELEMETRY，确认数据保存成功。
+    数据后处理：发送DATA_POSTPROCESS，确认格式转换完成。
+    紧急重置（可选）：发送RECOVER，确认所有状态重置。
+
+连接->GET_INFO->START_PREVIEW->STOP_PREVIEW->GET_AGENT_ID->START_TELEMETRY
+->STOP_AND_SUB->(可以选择丢弃重采)DISCARD_BOTH_DATA->VERIFY_DATA->WRITE_SUB_TASK_JSON
+->START_TELEMETRY-STOP_AND_SUB->VERIFY_DATA->WRITE_SUB_TASK_JSON（循环采集流程）
+
+
+sub_task.json
+预期内容如下：
+[
+  {
+    "subNumber": "chunk-000",//子任务序号
+    "duration": 10,//采集时长，单位秒
+    "startTime": "2025-11-21T10:35:00Z",//采集开始时间
+    "endTime": "2025-11-21T10:35:10Z",//采集结束时间
+    "fileSize": "2G"//采集文件大小
+  },
+  {
+    "subNumber": "chunk-001",//子任务序号
+    "duration": 10,//采集时长，单位秒
+    "startTime": "2025-11-21T10:36:00Z",//采集开始时间
+    "endTime": "2025-11-21T10:36:10Z",//采集结束时间
+    "fileSize": "2G"//采集文件大小
+  }
+]
+
+在机器人orin上装httpserver
+cd dist
+node -v 先确保电脑安装了 Node.js
+建立 npm 用户目录 mkdir -p ~/.npm-global
+告诉 npm 用这个目录 npm config set prefix '~/.npm-global'
+加入 PATH echo 'export PATH="$HOME/.npm-global/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+安装 http-server npm install -g http-server
+验证 http-server -v
+启动服务 http-server -p 8080
+
+
+ACL 强制兜底（强烈推荐给共享目录）
+sudo setfacl -R -m g::rwx /data
+sudo setfacl -R -m o::rwx /data
+sudo setfacl -R -d -m g::rwx /data
+sudo setfacl -R -d -m o::rwx /data
+
+
+PC 端 Samba 配置
+[data]
+   path = /data
+   browseable = yes
+   writable = yes
+   valid users = zhangqilin
+   force user = zhangqilin
+   force group = zhangqilin
+   create mask = 0664
+   directory mask = 2775
+
+PC 上 /data 权限：
+sudo chown root:zhangqilin /data
+sudo chmod 2775 /data
+sudo setfacl -R -m g::rwx /data       # 修复已有目录
+sudo setfacl -d -m g::rwx /data       # 默认 ACL，新文件/目录继承权限
+
+Orin 端配置
+每台 Orin 对应自己的 PC
+# /etc/orin_samba.conf
+SAMBA_HOST=172.16.9.153
+SAMBA_SHARE=data
+SAMBA_USER=xiededa
+SAMBA_PASS=qlzn1234
+代码里读取环境变量：
+#include <cstdlib>
+
+const char* SAMBA_HOST = std::getenv("SAMBA_HOST");
+const char* SAMBA_SHARE = std::getenv("SAMBA_SHARE");
+const char* SAMBA_USER = std::getenv("SAMBA_USER");
+const char* SAMBA_PASS = std::getenv("SAMBA_PASS");
